@@ -4,12 +4,30 @@ Begin VB.Form frmMain
    ClientHeight    =   9090
    ClientLeft      =   225
    ClientTop       =   870
-   ClientWidth     =   11115
+   ClientWidth     =   14670
    LinkTopic       =   "Form1"
    ScaleHeight     =   606
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   741
+   ScaleWidth      =   978
    StartUpPosition =   3  'Windows Default
+   Begin VB.ListBox animList 
+      Height          =   2205
+      ItemData        =   "frmMain.frx":0000
+      Left            =   11880
+      List            =   "frmMain.frx":0007
+      TabIndex        =   24
+      Top             =   5760
+      Width           =   2655
+   End
+   Begin VB.ListBox imgGrhsList 
+      Height          =   5130
+      ItemData        =   "frmMain.frx":0015
+      Left            =   11880
+      List            =   "frmMain.frx":001C
+      TabIndex        =   22
+      Top             =   120
+      Width           =   2655
+   End
    Begin VB.Frame grhFrame 
       Caption         =   "Grh"
       Height          =   735
@@ -123,7 +141,15 @@ Begin VB.Form frmMain
       Left            =   8640
       TabIndex        =   5
       Top             =   8160
-      Width           =   2055
+      Width           =   3015
+      Begin VB.CommandButton ZoomReset 
+         Caption         =   "reset"
+         Height          =   255
+         Left            =   2040
+         TabIndex        =   23
+         Top             =   240
+         Width           =   735
+      End
       Begin VB.CommandButton ZoomOut 
          Caption         =   "-"
          Height          =   255
@@ -164,30 +190,30 @@ Begin VB.Form frmMain
       Left            =   3000
       TabIndex        =   4
       Top             =   7800
-      Width           =   7695
+      Width           =   8415
    End
    Begin VB.VScrollBar picScrollV 
       Height          =   7695
       LargeChange     =   10
-      Left            =   10680
+      Left            =   11400
       TabIndex        =   3
       Top             =   120
       Width           =   255
    End
    Begin VB.ListBox fileList 
       Height          =   2205
-      ItemData        =   "frmMain.frx":0000
+      ItemData        =   "frmMain.frx":002D
       Left            =   120
-      List            =   "frmMain.frx":0002
+      List            =   "frmMain.frx":002F
       TabIndex        =   2
       Top             =   5760
       Width           =   2655
    End
    Begin VB.ListBox grhList 
       Height          =   5130
-      ItemData        =   "frmMain.frx":0004
+      ItemData        =   "frmMain.frx":0031
       Left            =   120
-      List            =   "frmMain.frx":0006
+      List            =   "frmMain.frx":0033
       TabIndex        =   1
       Top             =   120
       Width           =   2655
@@ -198,10 +224,10 @@ Begin VB.Form frmMain
       Left            =   3000
       ScaleHeight     =   508
       ScaleMode       =   3  'Pixel
-      ScaleWidth      =   508
+      ScaleWidth      =   556
       TabIndex        =   0
       Top             =   120
-      Width           =   7680
+      Width           =   8400
    End
    Begin VB.Menu FileMnu 
       Caption         =   "&File"
@@ -240,16 +266,12 @@ Option Explicit
 Private Const DEFAULT_ZOOM As Integer = 100
 
 ''
-' Maximum zoom possible, 10 times bigger.
-Private Const MAX_ZOOM As Integer = DEFAULT_ZOOM * 10
+' Maximum zoom possible, 30 times bigger.
+Private Const MAX_ZOOM As Integer = DEFAULT_ZOOM * 30
 
 ''
 ' Minimum zoom possible, 10 times smaller.
 Private Const MIN_ZOOM As Integer = DEFAULT_ZOOM / 10
-
-''
-' Step by which zoom is altered.
-Private Const ZOOM_STEP As Integer = 10
 
 ''
 ' Means no grh is being rendered.
@@ -281,7 +303,7 @@ Private Enum eSelectionBoxPointEdition
     sbpeEndXStartY
 End Enum
 
-Private Controles(7) As Variant ' quiero que los 7 controles sean "responsivos" cuando modificas la ventana
+Private Controles(9) As Variant
 
 Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos los controles. sera el minimo de referencia
     Left As Single
@@ -290,7 +312,7 @@ Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos
     Height As Single
 End Type
 
-Private OriginalPositions(7) As ControlPositionType
+Private OriginalPositions(9) As ControlPositionType
 Private formWidth As Single
 Private formHeight As Single
 
@@ -416,6 +438,10 @@ Private Sub bmpTxt_Change()
         ignoreSelectionBoxRender = (grhOnly.value = vbChecked)
         Call RenderSelectionBox
     End If
+End Sub
+
+Private Sub Command1_Click()
+
 End Sub
 
 Private Sub fileList_Click()
@@ -555,12 +581,16 @@ Private Sub grhHeightTxt_Change()
 End Sub
 
 Private Sub grhList_Click()
+    showGrh (Val(grhList.Text))
+End Sub
+
+Private Sub showGrh(ByVal grh As Long)
 On Error GoTo Err
 
     Dim path As String
     
     ' Set current grh and reset frame
-    currentGrh = Val(grhList.Text)
+    currentGrh = grh
     currentFrame = 1
     
     'Should grh controls be enabled?
@@ -1013,11 +1043,15 @@ Private Sub SaveOldMnu_Click()
 End Sub
 
 Private Sub ZoomIn_Click()
-    ZoomTxt.Text = Val(ZoomTxt.Text) + ZOOM_STEP
+    ZoomTxt.Text = Val(ZoomTxt.Text) * 1.2
 End Sub
 
 Private Sub ZoomOut_Click()
-    ZoomTxt.Text = Val(ZoomTxt.Text) - ZOOM_STEP
+    ZoomTxt.Text = Val(ZoomTxt.Text) * 0.8
+End Sub
+
+Private Sub ZoomReset_Click()
+ZoomTxt.Text = DEFAULT_ZOOM
 End Sub
 
 Private Sub ZoomTxt_Change()
@@ -1359,6 +1393,8 @@ Dim ctrl As Variant
     Set Controles(5) = picScrollH
     Set Controles(6) = grhFrame
     Set Controles(7) = Frame1
+    Set Controles(8) = imgGrhsList
+    Set Controles(9) = animList
     
     i = 0
     For Each ctrl In Controles
@@ -1413,10 +1449,14 @@ Private Sub ResizeControls()
         previewer.Width = OriginalPositions(3).Width + difW
         picScrollV.Left = OriginalPositions(4).Left + difW
         picScrollH.Width = OriginalPositions(5).Width + difW
+        imgGrhsList.Left = OriginalPositions(8).Left + difW
+        animList.Left = OriginalPositions(9).Left + difW
     Else
         previewer.Width = OriginalPositions(3).Width
         picScrollV.Left = OriginalPositions(4).Left
         picScrollH.Width = OriginalPositions(5).Width
+        imgGrhsList.Left = OriginalPositions(8).Left
+        animList.Left = OriginalPositions(9).Left
     End If
     
     If ScaleHeight > formHeight Then
@@ -1425,12 +1465,16 @@ Private Sub ResizeControls()
         picScrollH.Top = OriginalPositions(5).Top + difH
         grhFrame.Top = OriginalPositions(6).Top + difH
         Frame1.Top = OriginalPositions(7).Top + difH
+        imgGrhsList.Height = OriginalPositions(8).Height + difH / 2
+        animList.Top = OriginalPositions(9).Top + difH / 2
+        animList.Height = OriginalPositions(9).Height + difH / 2
     Else
         previewer.Height = OriginalPositions(3).Height
         picScrollV.Height = OriginalPositions(4).Height
         picScrollH.Top = OriginalPositions(5).Top
         grhFrame.Top = OriginalPositions(6).Top
         Frame1.Top = OriginalPositions(7).Top
+        animList.Top = OriginalPositions(9).Top
     End If
 
 End Sub
@@ -1447,14 +1491,30 @@ Private Sub fileList_KeyPress(key As Integer)
     globalKeyPress (key)
 End Sub
 
+Private Sub ZoomReset_KeyPress(key As Integer)
+    globalKeyPress (key)
+End Sub
+
+Private Sub ZoomIn_KeyPress(key As Integer)
+    globalKeyPress (key)
+End Sub
+
+Private Sub ZoomOut_KeyPress(key As Integer)
+    globalKeyPress (key)
+End Sub
+
 Private Sub globalKeyPress(KeyAscii As Integer)
     Debug.Print (KeyAscii)
-    If KeyAscii = 43 Then ' Tecla +
+
+    Select Case KeyAscii
+    Case 43
         ZoomIn_Click
         Debug.Print ("+")
-    ElseIf KeyAscii = 45 Then ' Tecla -
+    Case 45
         ZoomOut_Click
         Debug.Print ("-")
-    End If
+    Case 114 ' tecla R
+        ZoomReset_Click
+    End Select
 End Sub
 

@@ -93,10 +93,6 @@ Private Sub Form_Load()
     indexCmb.ListIndex = 0
 End Sub
 
-Private Sub indexCmb_Change()
-
-End Sub
-
 Private Sub indexTxt_Change()
     'Valdiate it's numeric
     If Not IsNumeric(indexTxt.Text) Then

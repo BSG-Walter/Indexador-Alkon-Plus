@@ -1,14 +1,11 @@
 VERSION 5.00
 Begin VB.Form frmMain 
-   BorderStyle     =   1  'Fixed Single
    Caption         =   "Indexador Alkon"
    ClientHeight    =   9090
-   ClientLeft      =   150
-   ClientTop       =   840
+   ClientLeft      =   225
+   ClientTop       =   870
    ClientWidth     =   11115
    LinkTopic       =   "Form1"
-   MaxButton       =   0   'False
-   MinButton       =   0   'False
    ScaleHeight     =   606
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   741
@@ -284,6 +281,19 @@ Private Enum eSelectionBoxPointEdition
     sbpeEndXStartY
 End Enum
 
+Private Controles(7) As Variant ' quiero que los 7 controles sean "responsivos" cuando modificas la ventana
+
+Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos los controles. sera el minimo de referencia
+    Left As Single
+    Top As Single
+    Width As Single
+    Height As Single
+End Type
+
+Private OriginalPositions(7) As ControlPositionType
+Private formWidth As Single
+Private formHeight As Single
+
 ''
 ' The current zoom, 1 == 100%
 Private zoom As Single
@@ -444,6 +454,8 @@ Private Sub Form_Load()
     Dim i As Long
     Dim fileName As String
     Dim path As String
+    
+    SavePositions
     
     If Not LoadConfig() Then
         'Show config form
@@ -765,7 +777,7 @@ Private Sub picScrollV_Change()
     Call RenderSelectionBox
 End Sub
 
-Private Sub previewer_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub previewer_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
     'If no picture is loaded, there is nothing to be done
     If currentPic Is Nothing Then Exit Sub
     
@@ -778,18 +790,18 @@ Private Sub previewer_MouseDown(Button As Integer, Shift As Integer, X As Single
                 editionCoord = sbpeEndXEndY
                 
                 'Make sure selection box doesn't go beyond bmp
-                If ViewPortToBmpPosX(X) > previewer.ScaleX(currentPic.Width) Then
-                    X = BmpToViewPortPosX(previewer.ScaleX(currentPic.Width))
+                If ViewPortToBmpPosX(x) > previewer.ScaleX(currentPic.Width) Then
+                    x = BmpToViewPortPosX(previewer.ScaleX(currentPic.Width))
                 End If
                 
-                If ViewPortToBmpPosY(Y) > previewer.ScaleY(currentPic.Height) Then
-                    Y = BmpToViewPortPosY(previewer.ScaleY(currentPic.Height))
+                If ViewPortToBmpPosY(y) > previewer.ScaleY(currentPic.Height) Then
+                    y = BmpToViewPortPosY(previewer.ScaleY(currentPic.Height))
                 End If
                 
                 
                 'Convert mouse pos to pixel pos of origin
-                selectionAreaStartX = ViewPortToBmpPosX(X)
-                selectionAreaStartY = ViewPortToBmpPosY(Y)
+                selectionAreaStartX = ViewPortToBmpPosX(x)
+                selectionAreaStartY = ViewPortToBmpPosY(y)
                 
                 'Reset end area, we are starting a new rectangle
                 selectionAreaEndX = selectionAreaStartX
@@ -799,63 +811,63 @@ Private Sub previewer_MouseDown(Button As Integer, Shift As Integer, X As Single
                 Call RenderSelectionBox
             
             Case vbSizeNS
-                If Abs(selectionAreaStartY - ViewPortToBmpPosY(Y)) < 2 Then
+                If Abs(selectionAreaStartY - ViewPortToBmpPosY(y)) < 2 Then
                     editionCoord = sbpeStartY
-                ElseIf Abs(selectionAreaEndY - ViewPortToBmpPosY(Y)) < 2 Then
+                ElseIf Abs(selectionAreaEndY - ViewPortToBmpPosY(y)) < 2 Then
                     editionCoord = sbpeEndY
                 End If
             
             Case vbSizeWE
-                If Abs(selectionAreaStartX - ViewPortToBmpPosX(X)) < 2 Then
+                If Abs(selectionAreaStartX - ViewPortToBmpPosX(x)) < 2 Then
                     editionCoord = sbpeStartX
-                ElseIf Abs(selectionAreaEndX - ViewPortToBmpPosX(X)) < 2 Then
+                ElseIf Abs(selectionAreaEndX - ViewPortToBmpPosX(x)) < 2 Then
                     editionCoord = sbpeEndX
                 End If
             
             Case vbSizeNWSE
-                If (Abs(selectionAreaStartX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(Y)) < 5) Then
+                If (Abs(selectionAreaStartX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(y)) < 5) Then
                     editionCoord = sbpeStartXStartY
-                ElseIf (Abs(selectionAreaEndX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(Y)) < 5) Then
+                ElseIf (Abs(selectionAreaEndX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(y)) < 5) Then
                     editionCoord = sbpeEndXEndY
                 End If
             
             Case vbSizeNESW
-                If (Abs(selectionAreaStartX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(Y)) < 5) Then
+                If (Abs(selectionAreaStartX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(y)) < 5) Then
                     editionCoord = sbpeStartXEndY
-                ElseIf (Abs(selectionAreaEndX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(Y)) < 5) Then
+                ElseIf (Abs(selectionAreaEndX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(y)) < 5) Then
                     editionCoord = sbpeEndXStartY
                 End If
         End Select
     End If
 End Sub
 
-Private Sub previewer_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub previewer_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     If Button And vbLeftButton Then
         If currentGrh <> NO_GRH And grhOnly.value = vbChecked Then Exit Sub
         
         'If we got past the border, we scroll!!
-        If X < 0 Then
-            X = 0
+        If x < 0 Then
+            x = 0
             
             If picScrollH.value > 0 And picScrollH.Enabled Then
                 picScrollH.value = picScrollH.value - 1
             End If
-        ElseIf X > previewer.Width Then
-            X = previewer.Width
+        ElseIf x > previewer.Width Then
+            x = previewer.Width
             
             If picScrollH.value < picScrollH.max And picScrollH.Enabled Then
                 picScrollH.value = picScrollH.value + 1
             End If
         End If
         
-        If Y < 0 Then
-            Y = 0
+        If y < 0 Then
+            y = 0
             
             If picScrollV.value > 0 And picScrollV.Enabled Then
                 picScrollV.value = picScrollV.value - 1
             End If
-        ElseIf Y > previewer.Height Then
-            Y = previewer.Height
+        ElseIf y > previewer.Height Then
+            y = previewer.Height
             
             If picScrollV.value < picScrollV.max And picScrollV.Enabled Then
                 picScrollV.value = picScrollV.value + 1
@@ -864,17 +876,17 @@ Private Sub previewer_MouseMove(Button As Integer, Shift As Integer, X As Single
         
         
         'Make sure selection box doesn't go beyond bmp
-        If ViewPortToBmpPosX(X) > previewer.ScaleX(currentPic.Width) Then
-            X = BmpToViewPortPosX(previewer.ScaleX(currentPic.Width))
+        If ViewPortToBmpPosX(x) > previewer.ScaleX(currentPic.Width) Then
+            x = BmpToViewPortPosX(previewer.ScaleX(currentPic.Width))
         End If
         
-        If ViewPortToBmpPosY(Y) > previewer.ScaleY(currentPic.Height) Then
-            Y = BmpToViewPortPosY(previewer.ScaleY(currentPic.Height))
+        If ViewPortToBmpPosY(y) > previewer.ScaleY(currentPic.Height) Then
+            y = BmpToViewPortPosY(previewer.ScaleY(currentPic.Height))
         End If
         
         
         'Update coords
-        Call UpdateSelectionBox(X, Y)
+        Call UpdateSelectionBox(x, y)
         
         'Show selection box!
         Call RenderSelectionBox
@@ -882,20 +894,20 @@ Private Sub previewer_MouseMove(Button As Integer, Shift As Integer, X As Single
         'Allow the user to resize the selection box!
         
         'Set mouse pointer appropiately
-        If (Abs(selectionAreaStartX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(Y)) < 5) _
-                Or (Abs(selectionAreaEndX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(Y)) < 5) Then
+        If (Abs(selectionAreaStartX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(y)) < 5) _
+                Or (Abs(selectionAreaEndX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(y)) < 5) Then
             Me.MousePointer = vbSizeNWSE
         
-        ElseIf (Abs(selectionAreaStartX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(Y)) < 5) _
-                Or (Abs(selectionAreaEndX - ViewPortToBmpPosX(X)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(Y)) < 5) Then
+        ElseIf (Abs(selectionAreaStartX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaEndY - ViewPortToBmpPosY(y)) < 5) _
+                Or (Abs(selectionAreaEndX - ViewPortToBmpPosX(x)) < 5 And Abs(selectionAreaStartY - ViewPortToBmpPosY(y)) < 5) Then
             Me.MousePointer = vbSizeNESW
         
-        ElseIf (Abs(selectionAreaStartX - ViewPortToBmpPosX(X)) < 2 Or Abs(selectionAreaEndX - ViewPortToBmpPosX(X)) < 2) _
-                And ViewPortToBmpPosY(Y) > selectionAreaStartY And ViewPortToBmpPosY(Y) < selectionAreaEndY Then
+        ElseIf (Abs(selectionAreaStartX - ViewPortToBmpPosX(x)) < 2 Or Abs(selectionAreaEndX - ViewPortToBmpPosX(x)) < 2) _
+                And ViewPortToBmpPosY(y) > selectionAreaStartY And ViewPortToBmpPosY(y) < selectionAreaEndY Then
             Me.MousePointer = vbSizeWE
         
-        ElseIf (Abs(selectionAreaStartY - ViewPortToBmpPosY(Y)) < 2 Or Abs(selectionAreaEndY - ViewPortToBmpPosY(Y)) < 2) _
-                And ViewPortToBmpPosX(X) > selectionAreaStartX And ViewPortToBmpPosX(X) < selectionAreaEndX Then
+        ElseIf (Abs(selectionAreaStartY - ViewPortToBmpPosY(y)) < 2 Or Abs(selectionAreaEndY - ViewPortToBmpPosY(y)) < 2) _
+                And ViewPortToBmpPosX(x) > selectionAreaStartX And ViewPortToBmpPosX(x) < selectionAreaEndX Then
             Me.MousePointer = vbSizeNS
         
         Else
@@ -904,21 +916,21 @@ Private Sub previewer_MouseMove(Button As Integer, Shift As Integer, X As Single
     End If
 End Sub
 
-Private Sub previewer_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub previewer_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
     If Button And vbLeftButton Then
         If currentGrh <> NO_GRH And grhOnly.value = vbChecked Then Exit Sub
         
         'Make sure selection box doesn't go beyond bmp
-        If ViewPortToBmpPosX(X) > previewer.ScaleX(currentPic.Width) Then
-            X = BmpToViewPortPosX(previewer.ScaleX(currentPic.Width))
+        If ViewPortToBmpPosX(x) > previewer.ScaleX(currentPic.Width) Then
+            x = BmpToViewPortPosX(previewer.ScaleX(currentPic.Width))
         End If
         
-        If ViewPortToBmpPosY(Y) > previewer.ScaleY(currentPic.Height) Then
-            Y = BmpToViewPortPosY(previewer.ScaleY(currentPic.Height))
+        If ViewPortToBmpPosY(y) > previewer.ScaleY(currentPic.Height) Then
+            y = BmpToViewPortPosY(previewer.ScaleY(currentPic.Height))
         End If
         
         'Update selection box
-        Call UpdateSelectionBox(X, Y)
+        Call UpdateSelectionBox(x, y)
         
         'Show selection box!
         Call RenderSelectionBox
@@ -1009,6 +1021,7 @@ Private Sub ZoomOut_Click()
 End Sub
 
 Private Sub ZoomTxt_Change()
+    Dim path As String
     'Validate
     If Not IsNumeric(ZoomTxt.Text) Then
         ZoomTxt.Text = DEFAULT_ZOOM
@@ -1032,11 +1045,33 @@ Private Sub ZoomTxt_Change()
     'Reset scrollbars
     Call SetScrollers
     
-    'Redraw
+    
+    If currentGrh = 0 Then Exit Sub
+    
+    'Load new bitmap
+    If currentGrh = NO_GRH Then ' lista de imagenes completas
+        If Right$(Config.bmpPath, 1) <> "\" Then
+            path = Config.bmpPath & "\" & fileList.Text & ".bmp"
+        Else
+            path = Config.bmpPath & fileList.Text & ".bmp"
+        End If
+    Else ' lista de grhs
+        If Right$(Config.bmpPath, 1) <> "\" Then
+            path = Config.bmpPath & "\" & GrhData(GrhData(currentGrh).Frames(currentFrame)).FileNum & ".bmp"
+        Else
+            path = Config.bmpPath & GrhData(GrhData(currentGrh).Frames(currentFrame)).FileNum & ".bmp"
+        End If
+    End If
+    
+    'Prevent memory leaks
+    Set currentPic = Nothing
+    Set currentPic = LoadPicture(path)
+    
     Call RedrawPicture(currentGrh, currentFrame)
     
     'Show selection box!
     Call RenderSelectionBox
+    
 End Sub
 
 ''
@@ -1137,8 +1172,8 @@ End Sub
 ' @param    x   The pixel position to be transformed.
 ' @return   The coord within the picturebox matching the bmp pixel pos.
 
-Private Function BmpToViewPortPosX(ByVal X As Long) As Long
-    BmpToViewPortPosX = (X - picScrollH.value) * zoom
+Private Function BmpToViewPortPosX(ByVal x As Long) As Long
+    BmpToViewPortPosX = (x - picScrollH.value) * zoom
 End Function
 
 ''
@@ -1147,8 +1182,8 @@ End Function
 ' @param    y   The pixel position to be transformed.
 ' @return   The coord within the picturebox matching the bmp pixel pos.
 
-Private Function BmpToViewPortPosY(ByVal Y As Long) As Long
-    BmpToViewPortPosY = (Y - picScrollV.value) * zoom
+Private Function BmpToViewPortPosY(ByVal y As Long) As Long
+    BmpToViewPortPosY = (y - picScrollV.value) * zoom
 End Function
 
 ''
@@ -1157,8 +1192,8 @@ End Function
 ' @param    x   The pixel position to be transformed.
 ' @return   The coord within the picturebox matching the bmp pixel pos.
 
-Private Function ViewPortToBmpPosX(ByVal X As Long) As Long
-    ViewPortToBmpPosX = picScrollH.value + Fix(X / zoom)
+Private Function ViewPortToBmpPosX(ByVal x As Long) As Long
+    ViewPortToBmpPosX = picScrollH.value + Fix(x / zoom)
 End Function
 
 ''
@@ -1167,8 +1202,8 @@ End Function
 ' @param    y   The pixel position to be transformed.
 ' @return   The coord within the picturebox matching the bmp pixel pos.
 
-Private Function ViewPortToBmpPosY(ByVal Y As Long) As Long
-    ViewPortToBmpPosY = picScrollV.value + Fix(Y / zoom)
+Private Function ViewPortToBmpPosY(ByVal y As Long) As Long
+    ViewPortToBmpPosY = picScrollV.value + Fix(y / zoom)
 End Function
 
 ''
@@ -1177,42 +1212,42 @@ End Function
 ' @param    x   The mouse pos in the x coord within the previewer.
 ' @param    y   The mouse pos in the y coord within the previewer.
 
-Private Sub UpdateSelectionBox(ByVal X As Long, ByVal Y As Long)
+Private Sub UpdateSelectionBox(ByVal x As Long, ByVal y As Long)
     Dim tmp As Long
     
     Select Case editionCoord
         Case sbpeNone
             'Convert mouse pos to pixel pos of end
-            selectionAreaEndX = ViewPortToBmpPosX(X)
-            selectionAreaEndY = ViewPortToBmpPosY(Y)
+            selectionAreaEndX = ViewPortToBmpPosX(x)
+            selectionAreaEndY = ViewPortToBmpPosY(y)
         
         Case sbpeStartX
-            selectionAreaStartX = ViewPortToBmpPosX(X)
+            selectionAreaStartX = ViewPortToBmpPosX(x)
         
         Case sbpeStartY
-            selectionAreaStartY = ViewPortToBmpPosY(Y)
+            selectionAreaStartY = ViewPortToBmpPosY(y)
         
         Case sbpeEndX
-            selectionAreaEndX = ViewPortToBmpPosX(X)
+            selectionAreaEndX = ViewPortToBmpPosX(x)
         
         Case sbpeEndY
-            selectionAreaEndY = ViewPortToBmpPosY(Y)
+            selectionAreaEndY = ViewPortToBmpPosY(y)
         
         Case sbpeStartXStartY
-            selectionAreaStartX = ViewPortToBmpPosX(X)
-            selectionAreaStartY = ViewPortToBmpPosY(Y)
+            selectionAreaStartX = ViewPortToBmpPosX(x)
+            selectionAreaStartY = ViewPortToBmpPosY(y)
         
         Case sbpeEndXEndY
-            selectionAreaEndX = ViewPortToBmpPosX(X)
-            selectionAreaEndY = ViewPortToBmpPosY(Y)
+            selectionAreaEndX = ViewPortToBmpPosX(x)
+            selectionAreaEndY = ViewPortToBmpPosY(y)
         
         Case sbpeStartXEndY
-            selectionAreaStartX = ViewPortToBmpPosX(X)
-            selectionAreaEndY = ViewPortToBmpPosY(Y)
+            selectionAreaStartX = ViewPortToBmpPosX(x)
+            selectionAreaEndY = ViewPortToBmpPosY(y)
         
         Case sbpeEndXStartY
-            selectionAreaEndX = ViewPortToBmpPosX(X)
-            selectionAreaStartY = ViewPortToBmpPosY(Y)
+            selectionAreaEndX = ViewPortToBmpPosX(x)
+            selectionAreaStartY = ViewPortToBmpPosY(y)
     End Select
     
     'Invert coordinates if needed to prevent pointer from going crazy on corners.
@@ -1311,3 +1346,115 @@ Private Sub SetGrhControlsEnabled(ByVal enable As Boolean)
     
     grhFrame.Enabled = enable
 End Sub
+
+Private Sub SavePositions()
+Dim i As Integer
+Dim ctrl As Variant
+
+    Set Controles(0) = grhList
+    Set Controles(1) = grhOnly
+    Set Controles(2) = fileList
+    Set Controles(3) = previewer
+    Set Controles(4) = picScrollV
+    Set Controles(5) = picScrollH
+    Set Controles(6) = grhFrame
+    Set Controles(7) = Frame1
+    
+    i = 0
+    For Each ctrl In Controles
+        With OriginalPositions(i)
+            .Left = ctrl.Left
+            .Top = ctrl.Top
+            .Width = ctrl.Width
+            .Height = ctrl.Height
+        End With
+        i = i + 1
+    Next ctrl
+
+    formWidth = ScaleWidth
+    formHeight = ScaleHeight
+End Sub
+
+Private Sub Form_Resize()
+    ResizeControls
+End Sub
+
+' Arrange the controls for the new size.
+Private Sub ResizeControls()
+    Dim x_scale As Single
+    Dim y_scale As Single
+
+    ' Don't bother if we are minimized.
+    If WindowState = vbMinimized Then Exit Sub
+
+    ' Get the form's current scale factors.
+    x_scale = ScaleWidth / formWidth
+    y_scale = ScaleHeight / formHeight
+    
+    '0 grhList
+    '1 grhOnly
+    '2 fileList
+    '3 previewer
+    '4 picScrollV
+    '5 picScrollH
+    '6 grhFrame
+    '7 Frame1
+    
+    If Me.Width < 400 Then Me.Width = formWidth
+    If Me.Height < 400 Then Me.Height = formHeight
+    
+    Dim difW As Single
+    Dim difH As Single
+
+    difW = ScaleWidth - formWidth
+    difH = ScaleHeight - formHeight
+    
+    If ScaleWidth > formWidth Then
+        previewer.Width = OriginalPositions(3).Width + difW
+        picScrollV.Left = OriginalPositions(4).Left + difW
+        picScrollH.Width = OriginalPositions(5).Width + difW
+    Else
+        previewer.Width = OriginalPositions(3).Width
+        picScrollV.Left = OriginalPositions(4).Left
+        picScrollH.Width = OriginalPositions(5).Width
+    End If
+    
+    If ScaleHeight > formHeight Then
+        previewer.Height = OriginalPositions(3).Height + difH
+        picScrollV.Height = OriginalPositions(4).Height + difH
+        picScrollH.Top = OriginalPositions(5).Top + difH
+        grhFrame.Top = OriginalPositions(6).Top + difH
+        Frame1.Top = OriginalPositions(7).Top + difH
+    Else
+        previewer.Height = OriginalPositions(3).Height
+        picScrollV.Height = OriginalPositions(4).Height
+        picScrollH.Top = OriginalPositions(5).Top
+        grhFrame.Top = OriginalPositions(6).Top
+        Frame1.Top = OriginalPositions(7).Top
+    End If
+
+End Sub
+
+Private Sub previewer_KeyPress(key As Integer)
+    globalKeyPress (key)
+End Sub
+
+Private Sub grhList_KeyPress(key As Integer)
+    globalKeyPress (key)
+End Sub
+
+Private Sub fileList_KeyPress(key As Integer)
+    globalKeyPress (key)
+End Sub
+
+Private Sub globalKeyPress(KeyAscii As Integer)
+    Debug.Print (KeyAscii)
+    If KeyAscii = 43 Then ' Tecla +
+        ZoomIn_Click
+        Debug.Print ("+")
+    ElseIf KeyAscii = 45 Then ' Tecla -
+        ZoomOut_Click
+        Debug.Print ("-")
+    End If
+End Sub
+

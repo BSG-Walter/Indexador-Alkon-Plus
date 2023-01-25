@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form frmConfig 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "Configuración"
-   ClientHeight    =   3075
+   ClientHeight    =   3345
    ClientLeft      =   45
    ClientTop       =   435
    ClientWidth     =   6615
@@ -10,16 +10,24 @@ Begin VB.Form frmConfig
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   3075
+   ScaleHeight     =   3345
    ScaleWidth      =   6615
    StartUpPosition =   3  'Windows Default
+   Begin VB.CheckBox Check1 
+      Caption         =   "Usar indices viejos (para versiones anteriores a la 12.1)"
+      Height          =   375
+      Left            =   120
+      TabIndex        =   13
+      Top             =   2280
+      Width           =   6375
+   End
    Begin VB.CommandButton CancelCmd 
       Caption         =   "Cancelar"
       Height          =   495
       Left            =   3480
       TabIndex        =   12
-      Top             =   2400
-      Width           =   2055
+      Top             =   2760
+      Width           =   2295
    End
    Begin VB.Frame Frame1 
       Caption         =   "Tiles"
@@ -96,10 +104,10 @@ Begin VB.Form frmConfig
    Begin VB.CommandButton Accept 
       Caption         =   "Aceptar"
       Height          =   495
-      Left            =   1080
+      Left            =   840
       TabIndex        =   0
-      Top             =   2400
-      Width           =   2055
+      Top             =   2760
+      Width           =   2295
    End
    Begin VB.Label Label2 
       AutoSize        =   -1  'True
@@ -156,7 +164,7 @@ Private Sub Accept_Click()
     Config.initPath = initPathTxt.Text
     Config.TilePixelHeight = Val(HeightTxt.Text)
     Config.TilePixelWidth = Val(WidthTxt.Text)
-    
+    Config.oldFormat = Check1.value
     Config.SaveConfig
     
     Call Unload(Me)
@@ -178,6 +186,8 @@ Private Sub Form_Load()
     
     HeightTxt.Text = CStr(Config.TilePixelHeight)
     WidthTxt.Text = CStr(Config.TilePixelWidth)
+    
+    If Config.oldFormat Then Check1.value = vbChecked
 End Sub
 
 Private Sub HeightTxt_Change()

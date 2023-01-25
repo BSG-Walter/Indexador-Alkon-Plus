@@ -6,6 +6,7 @@ Private Const CONFIG_FILE As String = "/Config.ini"
 'Configuration variables are publicly accessed
 Public bmpPath As String
 Public initPath As String
+Public oldFormat As Boolean
 
 Public TilePixelHeight As Integer
 Public TilePixelWidth As Integer
@@ -30,7 +31,7 @@ Public Function LoadConfig() As Boolean
     initPath = GetVar(configPath, "PATHS", "INITPATH")
     TilePixelHeight = Val(GetVar(configPath, "DEFINES", "TILEHEIGHT"))
     TilePixelWidth = Val(GetVar(configPath, "DEFINES", "TILEWIDTH"))
-    
+    oldFormat = Val(GetVar(configPath, "OTHER", "OLDFORMAT"))
     'Make usre they are valid
     If bmpPath = "" Or Not DirExists(bmpPath) Or initPath = "" Or Not DirExists(initPath) _
             Or TilePixelHeight = 0 Or TilePixelWidth = 0 Then
@@ -51,4 +52,6 @@ Public Sub SaveConfig()
     
     Call WriteVar(configPath, "DEFINES", "TILEHEIGHT", CStr(TilePixelHeight))
     Call WriteVar(configPath, "DEFINES", "TILEWIDTH", CStr(TilePixelWidth))
+    
+    Call WriteVar(configPath, "OTHER", "OLDFORMAT", CInt(oldFormat))
 End Sub

@@ -74,7 +74,7 @@ On Error GoTo ErrHandler
     'Check file format! (The crappy header had to have some use after all!)
     Get handle, , MiCabecera
     
-    If Left$(MiCabecera.desc, Len(OLD_FORMAT_HEADER)) = OLD_FORMAT_HEADER Then
+    If Config.oldFormat Then
         LoadGrhData = LoadGrhDataOld(handle, NumberOfGrhs(path))
         
         'No version available in old file format

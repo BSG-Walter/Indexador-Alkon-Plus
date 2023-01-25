@@ -1,0 +1,27 @@
+[History]
+1=#P0#=mb	#P1#=LoadGrhDataOld	#P2#=Indexador/Grh/LoadGrhDataOld	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20130510195508	#P7#=0	#P8#=55	.
+2=#P0#=mb	#P1#=previewer_MouseDown	#P2#=Indexador/frmMain/previewer_MouseDown	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20130302222610	#P7#=0	#P8#=0	.
+3=#P0#=mb	#P1#=DirExists	#P2#=Indexador/General/DirExists	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20130302222552	#P7#=0	#P8#=1	.
+4=#P0#=mb	#P1#=FileExists	#P2#=Indexador/General/FileExists	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20130302222549	#P7#=0	#P8#=1	.
+5=#P0#=mb	#P1#=LoadGrhData	#P2#=Indexador/Grh/LoadGrhData	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20130302222314	#P7#=0	#P8#=46	.
+6=#P0#=mb	#P1#=grhList_Click	#P2#=Indexador/frmMain/grhList_Click	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121208212815	#P7#=0	#P8#=6	.
+7=#P0#=mb	#P1#=fileList_Click	#P2#=Indexador/frmMain/fileList_Click	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121208212803	#P7#=0	#P8#=1	.
+8=#P0#=mb	#P1#=Form_Load	#P2#=Indexador/frmMain/Form_Load	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121208212444	#P7#=0	#P8#=33	.
+9=#P0#=mb	#P1#=SaveGrhDataNew	#P2#=Indexador/Grh/SaveGrhDataNew	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20121109210003	#P7#=0	#P8#=15	.
+10=#P0#=mb	#P1#=OkCmd_Click	#P2#=Indexador/frmAddGrh/OkCmd_Click	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121109205345	#P7#=0	#P8#=18	.
+11=#P0#=mb	#P1#=indexTxt_Change	#P2#=Indexador/frmAddGrh/indexTxt_Change	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121109203628	#P7#=0	#P8#=16	.
+12=#P0#=mb	#P1#=Form_Load	#P2#=Indexador/frmAddGrh/Form_Load	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121109203045	#P7#=0	#P8#=7	.
+13=#P0#=mb	#P1#=bmpTxt_Change	#P2#=Indexador/frmMain/bmpTxt_Change	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121109162539	#P7#=0	#P8#=35	.
+14=#P0#=mb	#P1#=Accept_Click	#P2#=Indexador/frmConfig/Accept_Click	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121109161159	#P7#=0	#P8#=15	.
+15=#P0#=mb	#P1#=LoadConfig	#P2#=Indexador/Config/LoadConfig	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20121109160903	#P7#=0	#P8#=0	.
+16=#P0#=mb	#P1#=BmpToViewPortPosY	#P2#=Indexador/frmMain/BmpToViewPortPosY	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20121109160839	#P7#=0	#P8#=0	.
+17=#P0#=mb	#P1#=previewer_MouseMove	#P2#=Indexador/frmMain/previewer_MouseMove	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121109160801	#P7#=0	#P8#=-1	.
+18=#P0#=mb	#P1#=NumberOfGrhs	#P2#=Indexador/Grh/NumberOfGrhs	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20121109155942	#P7#=0	#P8#=6	.
+19=#P0#=mb	#P1#=grhHeightTxt_Change	#P2#=Indexador/frmMain/grhHeightTxt_Change	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121108152419	#P7#=0	#P8#=18	.
+20=#P0#=mb	#P1#=grhYTxt_Change	#P2#=Indexador/frmMain/grhYTxt_Change	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121108152402	#P7#=0	#P8#=21	.
+21=#P0#=mb	#P1#=CancelCmd_Click	#P2#=Indexador/frmAddGrh/CancelCmd_Click	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121108141936	#P7#=0	#P8#=2	.
+22=#P0#=mb	#P1#=grhXTxt_Change	#P2#=Indexador/frmMain/grhXTxt_Change	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121106210702	#P7#=0	#P8#=6	.
+23=#P0#=mb	#P1#=RedrawPicture	#P2#=Indexador/frmMain/RedrawPicture	#P3#=	#P4#=	#P5#=MembMethodPrivate	#P6#=20121106210355	#P7#=0	#P8#=0	.
+24=#P0#=mb	#P1#=grhWidthTxt_Change	#P2#=Indexador/frmMain/grhWidthTxt_Change	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121105174952	#P7#=0	#P8#=14	.
+25=#P0#=mb	#P1#=animation_Timer	#P2#=Indexador/frmMain/animation_Timer	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121105174840	#P7#=0	#P8#=7	.
+26=#P0#=mb	#P1#=AddGrhMnu_Click	#P2#=Indexador/frmMain/AddGrhMnu_Click	#P3#=	#P4#=	#P5#=MembEventProcPrivate	#P6#=20121105174325	#P7#=0	#P8#=-1	.

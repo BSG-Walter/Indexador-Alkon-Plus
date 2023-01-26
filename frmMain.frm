@@ -10,7 +10,15 @@ Begin VB.Form frmMain
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   978
    StartUpPosition =   3  'Windows Default
-   Begin VB.ListBox animList 
+   Begin VB.CommandButton irBMP 
+      Caption         =   "Ir al BMP"
+      Height          =   255
+      Left            =   11880
+      TabIndex        =   25
+      Top             =   5400
+      Width           =   2655
+   End
+   Begin VB.ListBox imgGrhsList 
       Height          =   2205
       ItemData        =   "frmMain.frx":0000
       Left            =   11880
@@ -19,11 +27,11 @@ Begin VB.Form frmMain
       Top             =   5760
       Width           =   2655
    End
-   Begin VB.ListBox imgGrhsList 
+   Begin VB.ListBox animList 
       Height          =   5130
-      ItemData        =   "frmMain.frx":0015
+      ItemData        =   "frmMain.frx":0018
       Left            =   11880
-      List            =   "frmMain.frx":001C
+      List            =   "frmMain.frx":001F
       TabIndex        =   22
       Top             =   120
       Width           =   2655
@@ -261,6 +269,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+Dim hash As New Collection
 ''
 ' Default zoom, 100%
 Private Const DEFAULT_ZOOM As Integer = 100
@@ -303,7 +312,7 @@ Private Enum eSelectionBoxPointEdition
     sbpeEndXStartY
 End Enum
 
-Private Controles(9) As Variant
+Private Controles(10) As Variant
 
 Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos los controles. sera el minimo de referencia
     Left As Single
@@ -312,7 +321,7 @@ Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos
     Height As Single
 End Type
 
-Private OriginalPositions(9) As ControlPositionType
+Private OriginalPositions(10) As ControlPositionType
 Private formWidth As Single
 Private formHeight As Single
 
@@ -367,6 +376,7 @@ Private Sub AddGrhMnu_Click()
 End Sub
 
 Private Sub animation_Timer()
+On Error GoTo Err
     Dim path As String
     
     'If an animated grh is chosen, animate!
@@ -393,6 +403,20 @@ Private Sub animation_Timer()
             Call RedrawPicture(currentGrh, currentFrame)
         End If
     End If
+Err:
+Set currentPic = LoadPicture("")
+End Sub
+
+Private Sub animList_Click()
+    Dim i As Long
+    If currentGrh = NO_GRH Then Exit Sub
+    For i = 0 To grhList.ListCount - 1
+        If animList.Text = grhList.List(i) Then
+            grhList.ListIndex = i
+            Exit For
+        End If
+    Next i
+    UpdateImgGrhsList
 End Sub
 
 Private Sub bmpTxt_Change()
@@ -481,6 +505,9 @@ Private Sub Form_Load()
     Dim fileName As String
     Dim path As String
     
+    imgGrhsList.Clear
+    animList.Clear
+    
     SavePositions
     
     If Not LoadConfig() Then
@@ -498,6 +525,7 @@ Private Sub Form_Load()
                 Call grhList.AddItem(CStr(i))
             Else
                 Call grhList.AddItem(CStr(i) & " (ANIMACIÓN)")
+                Call animList.AddItem(CStr(i) & " (ANIMACIÓN)")
             End If
         End If
     Next i
@@ -582,6 +610,7 @@ End Sub
 
 Private Sub grhList_Click()
     showGrh (Val(grhList.Text))
+    UpdateImgGrhsList
 End Sub
 
 Private Sub showGrh(ByVal grh As Long)
@@ -789,6 +818,29 @@ Private Sub grhYTxt_Change()
     
     'Redraw selection area
     Call RenderSelectionBox
+End Sub
+
+Private Sub imgGrhsList_Click()
+    Dim i As Long
+    If currentGrh = NO_GRH Then Exit Sub
+    For i = 0 To grhList.ListCount - 1
+        If imgGrhsList.Text = grhList.List(i) Then
+            grhList.ListIndex = i
+            Exit For
+        End If
+    Next i
+End Sub
+
+Private Sub irBMP_Click()
+    Dim i As Long
+    If currentGrh = NO_GRH Then Exit Sub
+    For i = 0 To fileList.ListCount - 1
+        If CStr(GrhData(currentGrh).FileNum) = fileList.List(i) Then
+            Debug.Print fileList.List(i)
+            fileList.ListIndex = i
+            Exit For
+        End If
+    Next i
 End Sub
 
 Private Sub picScrollH_Change()
@@ -1393,8 +1445,9 @@ Dim ctrl As Variant
     Set Controles(5) = picScrollH
     Set Controles(6) = grhFrame
     Set Controles(7) = Frame1
-    Set Controles(8) = imgGrhsList
-    Set Controles(9) = animList
+    Set Controles(8) = animList
+    Set Controles(9) = imgGrhsList
+    Set Controles(10) = irBMP
     
     i = 0
     For Each ctrl In Controles
@@ -1449,32 +1502,44 @@ Private Sub ResizeControls()
         previewer.Width = OriginalPositions(3).Width + difW
         picScrollV.Left = OriginalPositions(4).Left + difW
         picScrollH.Width = OriginalPositions(5).Width + difW
-        imgGrhsList.Left = OriginalPositions(8).Left + difW
-        animList.Left = OriginalPositions(9).Left + difW
+        animList.Left = OriginalPositions(8).Left + difW
+        imgGrhsList.Left = OriginalPositions(9).Left + difW
+        irBMP.Left = OriginalPositions(10).Left + difW
     Else
         previewer.Width = OriginalPositions(3).Width
         picScrollV.Left = OriginalPositions(4).Left
         picScrollH.Width = OriginalPositions(5).Width
-        imgGrhsList.Left = OriginalPositions(8).Left
-        animList.Left = OriginalPositions(9).Left
+        animList.Left = OriginalPositions(8).Left
+        imgGrhsList.Left = OriginalPositions(9).Left
+        irBMP.Left = OriginalPositions(10).Left
     End If
     
     If ScaleHeight > formHeight Then
+        grhList.Height = OriginalPositions(0).Height + difH / 2
+        grhOnly.Top = OriginalPositions(1).Top + difH / 2
+        fileList.Top = OriginalPositions(2).Top + difH / 2
+        fileList.Height = OriginalPositions(2).Height + difH / 2
         previewer.Height = OriginalPositions(3).Height + difH
         picScrollV.Height = OriginalPositions(4).Height + difH
         picScrollH.Top = OriginalPositions(5).Top + difH
         grhFrame.Top = OriginalPositions(6).Top + difH
         Frame1.Top = OriginalPositions(7).Top + difH
-        imgGrhsList.Height = OriginalPositions(8).Height + difH / 2
-        animList.Top = OriginalPositions(9).Top + difH / 2
-        animList.Height = OriginalPositions(9).Height + difH / 2
+        animList.Height = OriginalPositions(8).Height + difH / 2
+        imgGrhsList.Top = OriginalPositions(9).Top + difH / 2
+        imgGrhsList.Height = OriginalPositions(9).Height + difH / 2
+        irBMP.Top = OriginalPositions(10).Top + difH / 2
     Else
+        grhList.Height = OriginalPositions(0).Height
+        grhOnly.Top = OriginalPositions(1).Top
+        fileList.Top = OriginalPositions(2).Top
+        fileList.Height = OriginalPositions(2).Height
         previewer.Height = OriginalPositions(3).Height
         picScrollV.Height = OriginalPositions(4).Height
         picScrollH.Top = OriginalPositions(5).Top
         grhFrame.Top = OriginalPositions(6).Top
         Frame1.Top = OriginalPositions(7).Top
-        animList.Top = OriginalPositions(9).Top
+        imgGrhsList.Top = OriginalPositions(9).Top
+        irBMP.Top = OriginalPositions(10).Top
     End If
 
 End Sub
@@ -1501,6 +1566,27 @@ End Sub
 
 Private Sub ZoomOut_KeyPress(key As Integer)
     globalKeyPress (key)
+End Sub
+
+Private Sub irBMP_KeyPress(key As Integer)
+    globalKeyPress (key)
+End Sub
+
+Private Sub UpdateImgGrhsList()
+    Dim i As Long, Frames As Integer
+    If currentGrh = NO_GRH Then
+        imgGrhsList.Clear
+        Exit Sub
+    End If
+    
+    Frames = GrhData(currentGrh).NumFrames
+    If Frames < 2 Then Exit Sub
+    
+    imgGrhsList.Clear
+    For i = 1 To Frames
+        imgGrhsList.AddItem GrhData(currentGrh).Frames(i)
+        Debug.Print (currentGrh)
+    Next i
 End Sub
 
 Private Sub globalKeyPress(KeyAscii As Integer)

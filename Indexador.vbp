@@ -7,6 +7,7 @@ Form=frmConfig.frm
 Module=FindFolder; FindFolder.bas
 Module=Grh; Grh.bas
 Form=frmAddGrh.frm
+Module=Desindexado; Desindexado.bas
 IconForm="frmMain"
 Startup="frmMain"
 ExeName32="Indexador.exe"

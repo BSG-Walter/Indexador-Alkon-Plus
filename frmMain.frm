@@ -1,40 +1,40 @@
 VERSION 5.00
 Begin VB.Form frmMain 
    Caption         =   "Indexador Alkon"
-   ClientHeight    =   9090
+   ClientHeight    =   9330
    ClientLeft      =   225
    ClientTop       =   870
-   ClientWidth     =   14670
+   ClientWidth     =   13470
    LinkTopic       =   "Form1"
-   ScaleHeight     =   606
+   ScaleHeight     =   622
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   978
+   ScaleWidth      =   898
    StartUpPosition =   3  'Windows Default
    Begin VB.CommandButton irBMP 
       Caption         =   "Ir al BMP"
       Height          =   255
-      Left            =   11880
+      Left            =   11160
       TabIndex        =   25
       Top             =   5400
-      Width           =   2655
+      Width           =   2175
    End
    Begin VB.ListBox imgGrhsList 
       Height          =   2205
       ItemData        =   "frmMain.frx":0000
-      Left            =   11880
+      Left            =   11160
       List            =   "frmMain.frx":0007
       TabIndex        =   24
       Top             =   5760
-      Width           =   2655
+      Width           =   2175
    End
    Begin VB.ListBox animList 
       Height          =   5130
       ItemData        =   "frmMain.frx":0018
-      Left            =   11880
+      Left            =   11160
       List            =   "frmMain.frx":001F
       TabIndex        =   22
       Top             =   120
-      Width           =   2655
+      Width           =   2175
    End
    Begin VB.Frame grhFrame 
       Caption         =   "Grh"
@@ -195,7 +195,7 @@ Begin VB.Form frmMain
    Begin VB.HScrollBar picScrollH 
       Height          =   255
       LargeChange     =   10
-      Left            =   3000
+      Left            =   2400
       TabIndex        =   4
       Top             =   7800
       Width           =   8415
@@ -203,7 +203,7 @@ Begin VB.Form frmMain
    Begin VB.VScrollBar picScrollV 
       Height          =   7695
       LargeChange     =   10
-      Left            =   11400
+      Left            =   10800
       TabIndex        =   3
       Top             =   120
       Width           =   255
@@ -215,7 +215,7 @@ Begin VB.Form frmMain
       List            =   "frmMain.frx":002F
       TabIndex        =   2
       Top             =   5760
-      Width           =   2655
+      Width           =   2175
    End
    Begin VB.ListBox grhList 
       Height          =   5130
@@ -224,18 +224,35 @@ Begin VB.Form frmMain
       List            =   "frmMain.frx":0033
       TabIndex        =   1
       Top             =   120
-      Width           =   2655
+      Width           =   2175
    End
    Begin VB.PictureBox previewer 
       AutoRedraw      =   -1  'True
       Height          =   7680
-      Left            =   3000
+      Left            =   2400
       ScaleHeight     =   508
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   556
       TabIndex        =   0
       Top             =   120
       Width           =   8400
+   End
+   Begin VB.Label lblGrh 
+      Caption         =   "Grh:"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   9.75
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   255
+      Left            =   240
+      TabIndex        =   26
+      Top             =   9000
+      Width           =   14295
    End
    Begin VB.Menu FileMnu 
       Caption         =   "&File"
@@ -312,7 +329,7 @@ Private Enum eSelectionBoxPointEdition
     sbpeEndXStartY
 End Enum
 
-Private Controles(10) As Variant
+Private Controles(11) As Variant
 
 Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos los controles. sera el minimo de referencia
     Left As Single
@@ -321,7 +338,7 @@ Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos
     Height As Single
 End Type
 
-Private OriginalPositions(10) As ControlPositionType
+Private OriginalPositions(11) As ControlPositionType
 Private formWidth As Single
 Private formHeight As Single
 
@@ -609,6 +626,14 @@ Private Sub grhHeightTxt_Change()
 End Sub
 
 Private Sub grhList_Click()
+    Dim posicion As Integer
+    posicion = InStr(grhList.Text, "(")
+    If posicion > 0 Then
+       lblGrh.Caption = Desindexar0120(CLng(Left(grhList.Text, posicion - 1)))
+    Else
+       lblGrh.Caption = Desindexar0120(CLng(grhList.Text))
+    End If
+    
     showGrh (Val(grhList.Text))
     UpdateImgGrhsList
 End Sub
@@ -1202,7 +1227,7 @@ End Sub
 ' @param    grh     The grh to be rendered within the loaded picture. Can be @code NO_GRH
 ' @param    frame   The frame of the grh to be rendered. Only important if grh is not @code NO_GRH
 
-Private Sub RedrawPicture(ByVal grh As Long, ByVal frame As Long)
+Private Sub RedrawPicture(ByVal grh As Long, ByVal Frame As Long)
 On Error Resume Next
     If currentPic Is Nothing Then Exit Sub
     
@@ -1213,7 +1238,7 @@ On Error Resume Next
     'Render!
     If grh <> NO_GRH And grhOnly.value = vbChecked Then
         'Transform grh to actual frame grh.
-        grh = GrhData(grh).Frames(frame)
+        grh = GrhData(grh).Frames(Frame)
         
         Call previewer.PaintPicture(currentPic, -picScrollH.value * zoom, -picScrollV.value * zoom, _
                                     GrhData(grh).pixelWidth * zoom, _
@@ -1448,6 +1473,7 @@ Dim ctrl As Variant
     Set Controles(8) = animList
     Set Controles(9) = imgGrhsList
     Set Controles(10) = irBMP
+    Set Controles(11) = lblGrh
     
     i = 0
     For Each ctrl In Controles
@@ -1528,6 +1554,7 @@ Private Sub ResizeControls()
         imgGrhsList.Top = OriginalPositions(9).Top + difH / 2
         imgGrhsList.Height = OriginalPositions(9).Height + difH / 2
         irBMP.Top = OriginalPositions(10).Top + difH / 2
+        lblGrh.Top = OriginalPositions(11).Top + difH
     Else
         grhList.Height = OriginalPositions(0).Height
         grhOnly.Top = OriginalPositions(1).Top
@@ -1540,6 +1567,7 @@ Private Sub ResizeControls()
         Frame1.Top = OriginalPositions(7).Top
         imgGrhsList.Top = OriginalPositions(9).Top
         irBMP.Top = OriginalPositions(10).Top
+        lblGrh.Top = OriginalPositions(11).Top
     End If
 
 End Sub

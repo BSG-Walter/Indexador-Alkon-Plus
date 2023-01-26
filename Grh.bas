@@ -51,13 +51,13 @@ Public fileVersion As Long
 
 Public Function LoadGrhData(ByVal path As String) As Boolean
 On Error GoTo ErrHandler
-    Dim handle As Integer
+    Dim Handle As Integer
     Dim MiCabecera As tCabecera
     
     'Set initial size
     ReDim GrhData(0) As GrhData
     
-    handle = FreeFile()
+    Handle = FreeFile()
     
     If path = vbNullString Then Exit Function
     
@@ -69,28 +69,28 @@ On Error GoTo ErrHandler
         Exit Function
     End If
     
-    Open path & GRH_DAT_FILE For Binary Access Read Lock Write As handle
+    Open path & GRH_DAT_FILE For Binary Access Read Lock Write As Handle
     
     'Check file format! (The crappy header had to have some use after all!)
-    Get handle, , MiCabecera
+    Get Handle, , MiCabecera
     
     If Config.oldFormat Then
-        LoadGrhData = LoadGrhDataOld(handle, NumberOfGrhs(path))
+        LoadGrhData = LoadGrhDataOld(Handle, NumberOfGrhs(path))
         
         'No version available in old file format
         fileVersion = -1
     Else
         'We dont' have header, move back to the beginning
-        Seek handle, 1
+        Seek Handle, 1
         
-        LoadGrhData = LoadGrhDataNew(handle)
+        LoadGrhData = LoadGrhDataNew(Handle)
     End If
     
-    Close handle
+    Close Handle
 Exit Function
 
 ErrHandler:
-    Close handle
+    Close Handle
     
     MsgBox "An error occured while loading the grh data." & vbCrLf _
         & "Make sure file format is valid, and in case of using the old format, make sure the " _
@@ -108,10 +108,10 @@ End Function
 '
 ' @return   True if the load was successfull, False otherwise.
 
-Private Function LoadGrhDataOld(ByVal handle As Integer, ByVal totalGrhs As Long) As Boolean
+Private Function LoadGrhDataOld(ByVal Handle As Integer, ByVal totalGrhs As Long) As Boolean
 On Error GoTo ErrorHandler
     Dim grh As Integer
-    Dim frame As Long
+    Dim Frame As Long
     Dim tempint As Integer
     Dim max As Integer
     
@@ -121,16 +121,16 @@ On Error GoTo ErrorHandler
     ReDim GrhData(1 To totalGrhs) As GrhData
     
     'Open files
-    Get handle, , tempint
-    Get handle, , tempint
-    Get handle, , tempint
-    Get handle, , tempint
-    Get handle, , tempint
+    Get Handle, , tempint
+    Get Handle, , tempint
+    Get Handle, , tempint
+    Get Handle, , tempint
+    Get Handle, , tempint
     
     'Fill Grh List
     
     'Get first Grh Number
-    Get handle, , grh
+    Get Handle, , grh
     
     Do Until grh <= 0
         'Get highest grh number being used
@@ -140,7 +140,7 @@ On Error GoTo ErrorHandler
         
         With GrhData(grh)
             'Get number of frames
-            Get handle, , .NumFrames
+            Get Handle, , .NumFrames
             If .NumFrames <= 0 Then GoTo ErrorHandler
             
             'Resize animation array
@@ -148,19 +148,19 @@ On Error GoTo ErrorHandler
             
             If .NumFrames > 1 Then
                 'Read a animation GRH set
-                For frame = 1 To .NumFrames
+                For Frame = 1 To .NumFrames
                 
-                    Get handle, , tempint
+                    Get Handle, , tempint
                     
                     'Old format uses integers
-                    .Frames(frame) = tempint
+                    .Frames(Frame) = tempint
                     
-                    If .Frames(frame) <= 0 Or .Frames(frame) > totalGrhs Then
+                    If .Frames(Frame) <= 0 Or .Frames(Frame) > totalGrhs Then
                         GoTo ErrorHandler
                     End If
-                Next frame
+                Next Frame
                 
-                Get handle, , tempint
+                Get Handle, , tempint
                 
                 'Convert old speed to new one (time based)!
                 .Speed = CSng(tempint) * .NumFrames * 1000 / 18
@@ -181,22 +181,22 @@ On Error GoTo ErrorHandler
                 If .TileHeight <= 0 Then GoTo ErrorHandler
             Else
                 'Read in normal GRH data
-                Get handle, , tempint
+                Get Handle, , tempint
                 
                 'Old format used ints, not longs.
                 .FileNum = tempint
                 If .FileNum <= 0 Then GoTo ErrorHandler
                 
-                Get handle, , .sX
+                Get Handle, , .sX
                 If .sX < 0 Then GoTo ErrorHandler
                 
-                Get handle, , .sY
+                Get Handle, , .sY
                 If .sY < 0 Then GoTo ErrorHandler
                     
-                Get handle, , .pixelWidth
+                Get Handle, , .pixelWidth
                 If .pixelWidth <= 0 Then GoTo ErrorHandler
                 
-                Get handle, , .pixelHeight
+                Get Handle, , .pixelHeight
                 If .pixelHeight <= 0 Then GoTo ErrorHandler
                 
                 'Compute width and height
@@ -208,10 +208,10 @@ On Error GoTo ErrorHandler
         End With
         
         'Get Next Grh Number
-        Get handle, , grh
+        Get Handle, , grh
     Loop
     
-    Close handle
+    Close Handle
     
     'Trim array
     ReDim Preserve GrhData(1 To max) As GrhData
@@ -255,41 +255,41 @@ End Function
 '
 ' @return   True if the load was successfull, False otherwise.
 
-Private Function LoadGrhDataNew(ByVal handle As Integer) As Boolean
+Private Function LoadGrhDataNew(ByVal Handle As Integer) As Boolean
 On Error GoTo ErrorHandler
     Dim grh As Long
-    Dim frame As Long
+    Dim Frame As Long
     Dim grhCount As Long
     
     'Get file version
-    Get handle, , fileVersion
+    Get Handle, , fileVersion
     
     'Get number of grhs
-    Get handle, , grhCount
+    Get Handle, , grhCount
     
     'Resize arrays
     ReDim GrhData(1 To grhCount) As GrhData
     
-    While Not EOF(handle)
-        Get handle, , grh
+    While Not EOF(Handle)
+        Get Handle, , grh
         
         With GrhData(grh)
             'Get number of frames
-            Get handle, , .NumFrames
+            Get Handle, , .NumFrames
             If .NumFrames <= 0 Then GoTo ErrorHandler
             
             ReDim .Frames(1 To GrhData(grh).NumFrames)
             
             If .NumFrames > 1 Then
                 'Read a animation GRH set
-                For frame = 1 To .NumFrames
-                    Get handle, , .Frames(frame)
-                    If .Frames(frame) <= 0 Or .Frames(frame) > grhCount Then
+                For Frame = 1 To .NumFrames
+                    Get Handle, , .Frames(Frame)
+                    If .Frames(Frame) <= 0 Or .Frames(Frame) > grhCount Then
                         GoTo ErrorHandler
                     End If
-                Next frame
+                Next Frame
                 
-                Get handle, , .Speed
+                Get Handle, , .Speed
                 
                 If .Speed <= 0 Then GoTo ErrorHandler
                 
@@ -307,19 +307,19 @@ On Error GoTo ErrorHandler
                 If .TileHeight <= 0 Then GoTo ErrorHandler
             Else
                 'Read in normal GRH data
-                Get handle, , .FileNum
+                Get Handle, , .FileNum
                 If .FileNum <= 0 Then GoTo ErrorHandler
                 
-                Get handle, , GrhData(grh).sX
+                Get Handle, , GrhData(grh).sX
                 If .sX < 0 Then GoTo ErrorHandler
                 
-                Get handle, , .sY
+                Get Handle, , .sY
                 If .sY < 0 Then GoTo ErrorHandler
                 
-                Get handle, , .pixelWidth
+                Get Handle, , .pixelWidth
                 If .pixelWidth <= 0 Then GoTo ErrorHandler
                 
-                Get handle, , .pixelHeight
+                Get Handle, , .pixelHeight
                 If .pixelHeight <= 0 Then GoTo ErrorHandler
                 
                 'Compute width and height
@@ -331,7 +331,7 @@ On Error GoTo ErrorHandler
         End With
     Wend
     
-    Close handle
+    Close Handle
     
     LoadGrhDataNew = True
 Exit Function
@@ -350,8 +350,8 @@ End Function
 ' @return   True if the file was properly saved, False otherwise (data can't be stored in the old file format, use new one).
 
 Public Function SaveGrhDataOld(ByVal path As String) As Boolean
-    Dim handle
-    Dim frame As Long
+    Dim Handle
+    Dim Frame As Long
     Dim i As Long
     Dim tempint As Integer
     Dim MiCabecera As tCabecera
@@ -362,64 +362,64 @@ Public Function SaveGrhDataOld(ByVal path As String) As Boolean
     path = path & GRH_DAT_FILE
     
     
-    handle = FreeFile()
+    Handle = FreeFile()
     
     If FileExists(path) Then
         Call Kill(path)
     End If
     
-    Open path For Binary Access Write As handle
+    Open path For Binary Access Write As Handle
     
     MiCabecera.desc = OLD_FORMAT_HEADER
     
     'Write headers
-    Put handle, , MiCabecera
-    Put handle, , tempint
-    Put handle, , tempint
-    Put handle, , tempint
-    Put handle, , tempint
-    Put handle, , tempint
+    Put Handle, , MiCabecera
+    Put Handle, , tempint
+    Put Handle, , tempint
+    Put Handle, , tempint
+    Put Handle, , tempint
+    Put Handle, , tempint
     
     'Store Grh List
     For i = 1 To UBound(GrhData())
         If GrhData(i).NumFrames > 0 Then
             'Index too big for this file format?
             If i > &H7FFF& Then
-                Close handle
+                Close Handle
                 Kill path
                 Exit Function
             End If
             
-            Put handle, , CInt(i)
+            Put Handle, , CInt(i)
             
             With GrhData(i)
                 'Set number of frames
-                Put handle, , .NumFrames
+                Put Handle, , .NumFrames
                 
                 If .NumFrames > 1 Then
                     'Read a animation GRH set
-                    For frame = 1 To .NumFrames
-                        Put handle, , CInt(.Frames(frame))
-                    Next frame
+                    For Frame = 1 To .NumFrames
+                        Put Handle, , CInt(.Frames(Frame))
+                    Next Frame
                     
-                    Put handle, , CInt(.Speed * 0.018 / .NumFrames)
+                    Put Handle, , CInt(.Speed * 0.018 / .NumFrames)
                 Else
                     'Write in normal GRH data
-                    Put handle, , CInt(.FileNum)
+                    Put Handle, , CInt(.FileNum)
                     
-                    Put handle, , .sX
+                    Put Handle, , .sX
                     
-                    Put handle, , .sY
+                    Put Handle, , .sY
                         
-                    Put handle, , .pixelWidth
+                    Put Handle, , .pixelWidth
                     
-                    Put handle, , .pixelHeight
+                    Put Handle, , .pixelHeight
                 End If
             End With
         End If
     Next i
     
-    Close handle
+    Close Handle
     
     SaveGrhDataOld = True
 End Function
@@ -434,8 +434,8 @@ End Function
 ' @return   True if the file was properly saved, False otherwise.
 
 Public Function SaveGrhDataNew(ByVal path As String) As Boolean
-    Dim handle
-    Dim frame As Long
+    Dim Handle
+    Dim Frame As Long
     Dim i As Long
     Dim tempint As Integer
     Dim MiCabecera As tCabecera
@@ -446,54 +446,54 @@ Public Function SaveGrhDataNew(ByVal path As String) As Boolean
     path = path & GRH_DAT_FILE
     
     
-    handle = FreeFile()
+    Handle = FreeFile()
     
     If FileExists(path) Then
         Call Kill(path)
     End If
     
-    Open path For Binary Access Write As handle
+    Open path For Binary Access Write As Handle
     
     'Increment file version
     fileVersion = fileVersion + 1
     
-    Put handle, , fileVersion
+    Put Handle, , fileVersion
     
-    Put handle, , CLng(UBound(GrhData()))
+    Put Handle, , CLng(UBound(GrhData()))
     
     'Store Grh List
     For i = 1 To UBound(GrhData())
         If GrhData(i).NumFrames > 0 Then
-            Put handle, , i
+            Put Handle, , i
             
             With GrhData(i)
                 'Set number of frames
-                Put handle, , .NumFrames
+                Put Handle, , .NumFrames
                 
                 If .NumFrames > 1 Then
                     'Read a animation GRH set
-                    For frame = 1 To .NumFrames
-                        Put handle, , .Frames(frame)
-                    Next frame
+                    For Frame = 1 To .NumFrames
+                        Put Handle, , .Frames(Frame)
+                    Next Frame
                     
-                    Put handle, , .Speed
+                    Put Handle, , .Speed
                 Else
                     'Write in normal GRH data
-                    Put handle, , .FileNum
+                    Put Handle, , .FileNum
                     
-                    Put handle, , .sX
+                    Put Handle, , .sX
                     
-                    Put handle, , .sY
+                    Put Handle, , .sY
                         
-                    Put handle, , .pixelWidth
+                    Put Handle, , .pixelWidth
                     
-                    Put handle, , .pixelHeight
+                    Put Handle, , .pixelHeight
                 End If
             End With
         End If
     Next i
     
-    Close handle
+    Close Handle
     
     SaveGrhDataNew = True
 End Function

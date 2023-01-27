@@ -132,11 +132,11 @@ Begin VB.Form frmMain
    Begin VB.CheckBox grhOnly 
       Caption         =   "Mostrar solamente el Grh"
       Height          =   255
-      Left            =   240
+      Left            =   120
       TabIndex        =   10
       Top             =   5400
       Value           =   1  'Checked
-      Width           =   2415
+      Width           =   2175
    End
    Begin VB.Timer animation 
       Enabled         =   0   'False
@@ -329,16 +329,24 @@ Private Enum eSelectionBoxPointEdition
     sbpeEndXStartY
 End Enum
 
-Private Controles(11) As Variant
+Private numControls As Integer
 
-Private Type ControlPositionType ' guardo la posicion y tamanio inicial de todos los controles. sera el minimo de referencia
-    Left As Single
-    Top As Single
-    Width As Single
-    Height As Single
+Private Type ControlPositionType ' guardo el control, los datos iniciales de posicion, tamaño, y defino como tiene que comportarse
+    control As Object
+    originalLeft As Single
+    originalTop As Single
+    originalWidth As Single
+    originalHeight As Single
+    column As Integer ' todos los objetos que esten uno debajo del otro, tienen que compartir la misma columna
+    dynamicWidth As Boolean
+    dynamicHeight As Boolean
 End Type
 
-Private OriginalPositions(11) As ControlPositionType
+Private columnsControls(4) As Integer ' en este array se guardara a partir de que control de la columna los demas tienen que moverse hacia abajo (porque ese control tiene altura dinamica)
+Private heigthControlsInColumn(4) As Integer ' numero de controles que se expanden verticalmente en la columna
+
+Private ControlPositions() As ControlPositionType
+
 Private formWidth As Single
 Private formHeight As Single
 
@@ -1459,36 +1467,52 @@ Private Sub SetGrhControlsEnabled(ByVal enable As Boolean)
 End Sub
 
 Private Sub SavePositions()
-Dim i As Integer
-Dim ctrl As Variant
-
-    Set Controles(0) = grhList
-    Set Controles(1) = grhOnly
-    Set Controles(2) = fileList
-    Set Controles(3) = previewer
-    Set Controles(4) = picScrollV
-    Set Controles(5) = picScrollH
-    Set Controles(6) = grhFrame
-    Set Controles(7) = Frame1
-    Set Controles(8) = animList
-    Set Controles(9) = imgGrhsList
-    Set Controles(10) = irBMP
-    Set Controles(11) = lblGrh
+    Dim i As Integer
+    numControls = 0
+    For i = 0 To UBound(columnsControls) - 1
+        columnsControls(i) = 1000
+        heigthControlsInColumn(i) = 0
+    Next i
     
-    i = 0
-    For Each ctrl In Controles
-        With OriginalPositions(i)
-            .Left = ctrl.Left
-            .Top = ctrl.Top
-            .Width = ctrl.Width
-            .Height = ctrl.Height
-        End With
-        i = i + 1
-    Next ctrl
+    Call AddControl(grhList, 0, False, True)
+    Call AddControl(grhOnly, 0, False, False)
+    Call AddControl(fileList, 0, False, True)
+    Call AddControl(previewer, 1, True, True)
+    Call AddControl(picScrollH, 1, True, False)
+    Call AddControl(picScrollV, 2, False, True)
+    Call AddControl(animList, 3, False, True)
+    Call AddControl(irBMP, 3, False, False)
+    Call AddControl(imgGrhsList, 3, False, True)
+    Call AddControl(grhFrame, 1, False, False)
+    Call AddControl(Frame1, 1, False, False)
+    Call AddControl(lblGrh, 1, False, False)
 
     formWidth = ScaleWidth
     formHeight = ScaleHeight
 End Sub
+
+Private Sub AddControl(ByRef ctrl As Object, ByVal column As Integer, ByVal dynamicWidth As Boolean, ByVal dynamicHeight As Boolean)
+'el primer argumento es el control que quieres que sea responsive
+'el segundo argumento es la columna en donde va ese control, por ahora esto esta pensado para 3 columnas
+'el tercero y cuarto argumento indica si quieres que el control aumente vertical y horizontalmente
+    ReDim Preserve ControlPositions(numControls + 1) As ControlPositionType
+    With ControlPositions(numControls)
+        Set .control = ctrl
+        .originalLeft = .control.Left
+        .originalTop = .control.Top
+        .originalWidth = .control.Width
+        .originalHeight = .control.Height
+        .column = column
+        .dynamicWidth = dynamicWidth
+        .dynamicHeight = dynamicHeight
+    End With
+    
+    If columnsControls(column) = 1000 And dynamicHeight Then columnsControls(column) = numControls
+    If dynamicHeight Then heigthControlsInColumn(column) = heigthControlsInColumn(column) + 1
+    numControls = numControls + 1
+End Sub
+
+
 
 Private Sub Form_Resize()
     ResizeControls
@@ -1496,79 +1520,38 @@ End Sub
 
 ' Arrange the controls for the new size.
 Private Sub ResizeControls()
-    Dim x_scale As Single
-    Dim y_scale As Single
-
-    ' Don't bother if we are minimized.
-    If WindowState = vbMinimized Then Exit Sub
-
-    ' Get the form's current scale factors.
-    x_scale = ScaleWidth / formWidth
-    y_scale = ScaleHeight / formHeight
-    
-    '0 grhList
-    '1 grhOnly
-    '2 fileList
-    '3 previewer
-    '4 picScrollV
-    '5 picScrollH
-    '6 grhFrame
-    '7 Frame1
-    
-    If Me.Width < 400 Then Me.Width = formWidth
-    If Me.Height < 400 Then Me.Height = formHeight
-    
     Dim difW As Single
     Dim difH As Single
-
     difW = ScaleWidth - formWidth
     difH = ScaleHeight - formHeight
     
-    If ScaleWidth > formWidth Then
-        previewer.Width = OriginalPositions(3).Width + difW
-        picScrollV.Left = OriginalPositions(4).Left + difW
-        picScrollH.Width = OriginalPositions(5).Width + difW
-        animList.Left = OriginalPositions(8).Left + difW
-        imgGrhsList.Left = OriginalPositions(9).Left + difW
-        irBMP.Left = OriginalPositions(10).Left + difW
-    Else
-        previewer.Width = OriginalPositions(3).Width
-        picScrollV.Left = OriginalPositions(4).Left
-        picScrollH.Width = OriginalPositions(5).Width
-        animList.Left = OriginalPositions(8).Left
-        imgGrhsList.Left = OriginalPositions(9).Left
-        irBMP.Left = OriginalPositions(10).Left
-    End If
-    
-    If ScaleHeight > formHeight Then
-        grhList.Height = OriginalPositions(0).Height + difH / 2
-        grhOnly.Top = OriginalPositions(1).Top + difH / 2
-        fileList.Top = OriginalPositions(2).Top + difH / 2
-        fileList.Height = OriginalPositions(2).Height + difH / 2
-        previewer.Height = OriginalPositions(3).Height + difH
-        picScrollV.Height = OriginalPositions(4).Height + difH
-        picScrollH.Top = OriginalPositions(5).Top + difH
-        grhFrame.Top = OriginalPositions(6).Top + difH
-        Frame1.Top = OriginalPositions(7).Top + difH
-        animList.Height = OriginalPositions(8).Height + difH / 2
-        imgGrhsList.Top = OriginalPositions(9).Top + difH / 2
-        imgGrhsList.Height = OriginalPositions(9).Height + difH / 2
-        irBMP.Top = OriginalPositions(10).Top + difH / 2
-        lblGrh.Top = OriginalPositions(11).Top + difH
-    Else
-        grhList.Height = OriginalPositions(0).Height
-        grhOnly.Top = OriginalPositions(1).Top
-        fileList.Top = OriginalPositions(2).Top
-        fileList.Height = OriginalPositions(2).Height
-        previewer.Height = OriginalPositions(3).Height
-        picScrollV.Height = OriginalPositions(4).Height
-        picScrollH.Top = OriginalPositions(5).Top
-        grhFrame.Top = OriginalPositions(6).Top
-        Frame1.Top = OriginalPositions(7).Top
-        imgGrhsList.Top = OriginalPositions(9).Top
-        irBMP.Top = OriginalPositions(10).Top
-        lblGrh.Top = OriginalPositions(11).Top
-    End If
+    Dim i As Integer
+    For i = 0 To UBound(ControlPositions) - 1
+        With ControlPositions(i)
+            Dim columDif As Integer
+            columDif = difH / heigthControlsInColumn(.column)
+            
+            If ScaleHeight > formHeight Then
+                If i > columnsControls(.column) Then
+                    .control.Top = .originalTop + columDif
+                Else
+                    .control.Top = .originalTop
+                End If
+                If .dynamicHeight Then .control.Height = .originalHeight + columDif
+            Else
+                .control.Height = .originalHeight
+            End If
+            
+            If ScaleWidth > formWidth Then
+                If .column > 1 Then .control.Left = .originalLeft + difW 'cambiar esto mas adelante
+                If .dynamicWidth Then .control.Width = .originalWidth + difW
+            Else
+                .control.Left = .originalLeft
+                .control.Width = .originalWidth
+            End If
+            
+        End With
+    Next i
 
 End Sub
 
